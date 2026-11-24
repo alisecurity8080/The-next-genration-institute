@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Next Generation Institute — Fees & Overdue Logic Prototype</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --card-2: #162032;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-2: #22c55e;
+      --danger: #ef4444;
+      --warn: #f59e0b;
+      --border: #334155;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1120px;
+      margin: 0 auto;
+    }
+
+    .topbar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      padding: 16px 20px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 1.25rem;
+      color: var(--accent);
+    }
+
+    .brand p {
+      margin: 4px 0 0;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .status-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border: 1px solid transparent;
+    }
+
+    .badge.online {
+      background: rgba(34, 197, 94, 0.15);
+      color: #4ade80;
+      border-color: rgba(34, 197, 94, 0.35);
+    }
+
+    .badge.offline {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border-color: rgba(239, 68, 68, 0.35);
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px;
+      margin-bottom: 18px;
+    }
+
+    .card h2, .card h3 {
+      margin-top: 0;
+      font-size: 1.05rem;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 18px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .stat-box {
+      background: var(--card-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+    }
+
+    .stat-box .label {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .stat-box .value {
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-top: 6px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-bottom: 5px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 9px 11px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--card-2);
+      color: var(--text);
+      font-size: 0.9rem;
+      margin-bottom: 12px;
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      padding: 9px 14px;
+      font-weight: 600;
+      font-size: 0.88rem;
+      transition: opacity 0.15s ease;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #082f49;
+    }
+
+    .btn-success {
+      background: var(--accent-2);
+      color: #052e16;
+    }
+
+    .btn-warn {
+      background: var(--warn);
+      color: #451a03;
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .row-btns {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+
+    th, td {
+      padding: 10px 8px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      vertical-align: middle;
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 0.8rem;
+    }
+
+    .months-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+
+    .month-pill {
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid transparent;
+    }
+
+    .month-paid {
+      background: rgba(34, 197, 94, 0.16);
+      color: #4ade80;
+      border-color: rgba(34, 197, 94, 0.35);
+    }
+
+    .month-unpaid {
+      background: rgba(239, 68, 68, 0.16);
+      color: #f87171;
+      border-color: rgba(239, 68, 68, 0.35);
+    }
+
+    .alert-pill {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .alert-overdue {
+      background: rgba(239, 68, 68, 0.2);
+      color: #fca5a5;
+      border: 1px solid rgba(239, 68, 68, 0.45);
+    }
+
+    .alert-ok {
+      background: rgba(56, 189, 248, 0.15);
+      color: #7dd3fc;
+      border: 1px solid rgba(56, 189, 248, 0.35);
+    }
+
+    .log-box {
+      background: var(--card-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      max-height: 220px;
+      overflow-y: auto;
+      font-size: 0.83rem;
+    }
+
+    .log-item {
+      padding: 7px 0;
+      border-bottom: 1px dashed var(--border);
+    }
+
+    .log-item:last-child {
+      border-bottom: none;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .hint {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: -6px;
+      margin-bottom: 10px;
+    }
+
+    .auth-wrapper {
+      max-width: 440px;
+      margin: 40px auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Top Header -->
+    <div class="topbar">
+      <div class="brand">
+        <h1>The Next Generation Institute</h1>
+        <p>Hybrid Fees &amp; Overdue Logic Sandbox (Test Before Desktop Build)</p>
+      </div>
+      <div class="status-bar">
+        <span id="connBadge" class="badge online">Wi-Fi / Online Mode</span>
+        <button id="toggleConnBtn" class="btn-ghost" type="button">Switch to Offline Mode</button>
+        <button id="logoutBtn" class="btn-ghost hidden" type="button">Logout</button>
+      </div>
+    </div>
+
+    <!-- Auth Section (Login + SMS/WhatsApp OTP Password Reset) -->
+    <div id="authSection" class="auth-wrapper">
+      <div id="loginBox" class="card">
+        <h2>Admin / Accountant Login</h2>
+        <p class="hint">Demo credentials: username <b>admin</b>, password <b>admin123</b></p>
+        <form id="loginForm">
+          <label for="loginUser">Username</label>
+          <input id="loginUser" type="text" value="admin" required />
+
+          <label for="loginPass">Password</label>
+          <input id="loginPass" type="password" value="admin123" required />
+
+          <div class="row-btns">
+            <button type="submit" class="btn-primary">Login</button>
+            <button type="button" id="openResetBtn" class="btn-ghost">Forgot / Change Password (SMS / WhatsApp)</button>
+          </div>
+        </form>
+        <p id="authMsg" class="hint" style="margin-top:10px; color:#f87171;"></p>
+      </div>
+
+      <div id="resetBox" class="card hidden">
+        <h2>Change / Reset Password via OTP</h2>
+        <p class="hint">Select SMS or WhatsApp to receive OTP code (requires Online/Wi-Fi mode).</p>
+
+        <label for="otpChannel">Delivery Channel</label>
+        <select id="otpChannel">
+          <option value="WhatsApp">WhatsApp Message</option>
+          <option value="SMS">SMS Message</option>
+        </select>
+
+        <label for="registeredPhone">Registered Phone Number</label>
+        <input id="registeredPhone" type="text" value="+923001234567" />
+
+        <div class="row-btns" style="margin-bottom:12px;">
+          <button type="button" id="sendOtpBtn" class="btn-warn">Send OTP Code</button>
+          <button type="button" id="backToLoginBtn" class="btn-ghost">Back to Login</button>
+        </div>
+
+        <div id="otpPreview" class="hint" style="color:#4ade80;"></div>
+
+        <label for="otpInput">Enter OTP Code</label>
+        <input id="otpInput" type="text" placeholder="e.g. 482910" />
+
+        <label for="newPasswordInput">New Password</label>
+        <input id="newPasswordInput" type="password" placeholder="Enter new password" />
+
+        <button type="button" id="confirmPasswordBtn" class="btn-success">Update Password</button>
+        <p id="resetMsg" class="hint" style="margin-top:10px;"></p>
+      </div>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div id="dashboardSection" class="hidden">
+      <!-- Stats -->
+      <div class="stats">
+        <div class="stat-box">
+          <div class="label">Total Students</div>
+          <div id="statStudents" class="value">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="label">3+ Months Overdue (&gt; 3 Unpaid)</div>
+          <div id="statOverdue" class="value" style="color:#f87171;">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="label">Pending Messages (Offline Queue)</div>
+          <div id="statQueue" class="value" style="color:#fbbf24;">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="label">Sent Reminders</div>
+          <div id="statSent" class="value" style="color:#4ade80;">0</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <!-- Add Student Form -->
+        <div class="card">
+          <h3>Add New Student (Self-Service)</h3>
+          <form id="addStudentForm">
+            <label for="stuName">Student Full Name</label>
+            <input id="stuName" type="text" placeholder="e.g. Bilal Ahmed" required />
+
+            <label for="stuClass">Class / Section</label>
+            <input id="stuClass" type="text" placeholder="e.g. Class 8 - A" required />
+
+            <label for="stuPhone">Guardian Phone (SMS / WhatsApp)</label>
+            <input id="stuPhone" type="text" placeholder="+923001112233" required />
+
+            <label for="stuFee">Monthly Fee (PKR)</label>
+            <input id="stuFee" type="number" min="100" value="4500" required />
+
+            <label for="stuChannel">Default Reminder Channel</label>
+            <select id="stuChannel">
+              <option value="WhatsApp">WhatsApp</option>
+              <option value="SMS">SMS</option>
+            </select>
+
+            <button type="submit" class="btn-success">+ Add Student to System</button>
+          </form>
+        </div>
+
+        <!-- Overdue Alert & Auto-Message Logic -->
+        <div class="card">
+          <h3>Overdue Rule (&gt; 3 Months Unpaid) &amp; Message Queue</h3>
+          <p class="hint">
+            Rule: Any student with <b>more than 3 unpaid months</b> is flagged for automatic reminder.
+            When Online/Wi-Fi is active, queued reminders are dispatched automatically.
+          </p>
+          <div class="row-btns" style="margin-bottom:12px;">
+            <button type="button" id="runOverdueCheckBtn" class="btn-warn">Check Overdue &amp; Queue Reminders</button>
+            <button type="button" id="flushQueueBtn" class="btn-primary">Send Queued Now (If Online)</button>
+            <button type="button" id="resetDemoBtn" class="btn-ghost">Reset Sample Data</button>
+          </div>
+          <div id="messageLog" class="log-box"></div>
+        </div>
+      </div>
+
+      <!-- Student Fee Ledger Table -->
+      <div class="card">
+        <h3>Student Monthly Fee Tracker (Click Any Month Pill to Toggle Paid / Unpaid)</h3>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>Class</th>
+                <th>Contact</th>
+                <th>Monthly Fee</th>
+                <th>Months (Jan–Jun)</th>
+                <th>Unpaid Months</th>
+                <th>Dues (PKR)</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="studentsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
+    const STORAGE_KEY = "tngi_fees_prototype_v1";
+
+    const defaultState = {
+      isOnline: true,
+      isLoggedIn: false,
+      admin: {
+        username: "admin",
+        passwordHash: btoa("admin123"),
+        phone: "+923001234567"
+      },
+      pendingOtp: null,
+      students: [
+        {
+          id: 1,
+          name: "Hamza Tariq",
+          className: "Class 9 - Science",
+          phone: "+923009876543",
+          monthlyFee: 5000,
+          channel: "WhatsApp",
+          months: { Jan: false, Feb: false, Mar: false, Apr: false, May: true, Jun: true } // 4 unpaid -> > 3
+        },
+        {
+          id: 2,
+          name: "Ayesha Siddiqui",
+          className: "Class 7 - B",
+          phone: "+923215554433",
+          monthlyFee: 4000,
+          channel: "SMS",
+          months: { Jan: true, Feb: true, Mar: false, Apr: false, May: true, Jun: true } // 2 unpaid
+        },
+        {
+          id: 3,
+          name: "Zainab Raza",
+          className: "Class 10 - A",
+          phone: "+923334445566",
+          monthlyFee: 5500,
+          channel: "WhatsApp",
+          months: { Jan: false, Feb: false, Mar: false, Apr: false, May: false, Jun: true } // 5 unpaid -> > 3
+        }
+      ],
+      messageQueue: [],
+      sentMessages: [],
+      notifiedStudentIds: []
+    };
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return structuredClone(defaultState);
+        return { ...structuredClone(defaultState), ...JSON.parse(raw) };
+      } catch {
+        return structuredClone(defaultState);
+      }
+    }
+
+    let state = loadState();
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function getUnpaidMonths(student) {
+      return MONTHS.filter((m) => !student.months[m]);
+    }
+
+    function renderConnection() {
+      const badge = document.getElementById("connBadge");
+      const btn = document.getElementById("toggleConnBtn");
+      if (state.isOnline) {
+        badge.className = "badge online";
+        badge.textContent = "Wi-Fi / Online Mode";
+        btn.textContent = "Switch to Offline Mode";
+      } else {
+        badge.className = "badge offline";
+        badge.textContent = "Offline Mode (No Internet)";
+        btn.textContent = "Switch to Online Mode";
+      }
+    }
+
+    function renderAuth() {
+      const authSection = document.getElementById("authSection");
+      const dashboardSection = document.getElementById("dashboardSection");
+      const logoutBtn = document.getElementById("logoutBtn");
+
+      if (state.isLoggedIn) {
+        authSection.classList.add("hidden");
+        dashboardSection.classList.remove("hidden");
+        logoutBtn.classList.remove("hidden");
+        renderDashboard();
+      } else {
+        authSection.classList.remove("hidden");
+        dashboardSection.classList.add("hidden");
+        logoutBtn.classList.add("hidden");
+      }
+    }
+
+    function renderStats() {
+      const overdueCount = state.students.filter((s) => getUnpaidMonths(s).length > 3).length;
+      document.getElementById("statStudents").textContent = state.students.length;
+      document.getElementById("statOverdue").textContent = overdueCount;
+      document.getElementById("statQueue").textContent = state.messageQueue.length;
+      document.getElementById("statSent").textContent = state.sentMessages.length;
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById("studentsTableBody");
+      tbody.innerHTML = "";
+
+      state.students.forEach((stu) => {
+        const unpaid = getUnpaidMonths(stu);
+        const unpaidCount = unpaid.length;
+        const dues = unpaidCount * stu.monthlyFee;
+        const isOverdue = unpaidCount > 3;
+
+        const pillsHtml = MONTHS.map((m) => {
+          const paid = !!stu.months[m];
+          return `<span class="month-pill ${paid ? "month-paid" : "month-unpaid"}" onclick="toggleMonth(${stu.id}, '${m}')">${m}: ${paid ? "Paid" : "Due"}</span>`;
+        }).join("");
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><b>${stu.name}</b></td>
+          <td>${stu.className}</td>
+          <td>${stu.phone}<br><span style="color:#94a3b8;font-size:0.75rem;">${stu.channel}</span></td>
+          <td>PKR ${stu.monthlyFee.toLocaleString()}</td>
+          <td><div class="months-grid">${pillsHtml}</div></td>
+          <td><b>${unpaidCount}</b></td>
+          <td>PKR ${dues.toLocaleString()}</td>
+          <td>
+            <span class="alert-pill ${isOverdue ? "alert-overdue" : "alert-ok"}">
+              ${isOverdue ? "3+ Months Alert" : "Normal"}
+            </span>
+          </td>
+          <td>
+            <button class="btn-danger" style="padding:5px 9px;font-size:0.75rem;" onclick="deleteStudent(${stu.id})">Remove</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderLog() {
+      const box = document.getElementById("messageLog");
+      const combined = [
+        ...state.messageQueue.map((m) => ({ ...m, tag: "[QUEUED - OFFLINE]" })),
+        ...state.sentMessages.map((m) => ({ ...m, tag: "[SENT]" }))
+      ];
+
+      if (combined.length === 0) {
+        box.innerHTML = `<div class="log-item" style="color:#94a3b8;">No overdue reminder logs yet. Click "Check Overdue &amp; Queue Reminders".</div>`;
+        return;
+      }
+
+      box.innerHTML = combined
+        .slice()
+        .reverse()
+        .map(
+          (item) => `
+          <div class="log-item">
+            <b>${item.tag}</b> via <b>${item.channel}</b> to <b>${item.phone}</b><br>
+            <span style="color:#cbd5e1;">${item.text}</span>
+          </div>`
+        )
+        .join("");
+    }
+
+    function renderDashboard() {
+      renderStats();
+      renderTable();
+      renderLog();
+    }
+
+    window.toggleMonth = function (studentId, month) {
+      const stu = state.students.find((s) => s.id === studentId);
+      if (!stu) return;
+      stu.months[month] = !stu.months[month];
+      if (getUnpaidMonths(stu).length <= 3) {
+        state.notifiedStudentIds = state.notifiedStudentIds.filter((id) => id !== studentId);
+      }
+      saveState();
+      renderDashboard();
+    };
+
+    window.deleteStudent = function (studentId) {
+      state.students = state.students.filter((s) => s.id !== studentId);
+      state.notifiedStudentIds = state.notifiedStudentIds.filter((id) => id !== studentId);
+      saveState();
+      renderDashboard();
+    };
+
+    function evaluateOverdueAndDispatch() {
+      const overdueStudents = state.students.filter((s) => getUnpaidMonths(s).length > 3);
+
+      overdueStudents.forEach((stu) => {
+        if (state.notifiedStudentIds.includes(stu.id)) return;
+        const unpaidList = getUnpaidMonths(stu);
+        const totalDue = unpaidList.length * stu.monthlyFee;
+        const msgObj = {
+          id: Date.now() + Math.random(),
+          studentId: stu.id,
+          phone: stu.phone,
+          channel: stu.channel,
+          text: `The Next Generation Institute: Reminder for ${stu.name} (${stu.className}). Unpaid months (${unpaidList.length}): ${unpaidList.join(", ")}. Total due: PKR ${totalDue}.`
+        };
+
+        state.notifiedStudentIds.push(stu.id);
+        if (state.isOnline) {
+          state.sentMessages.push(msgObj);
+        } else {
+          state.messageQueue.push(msgObj);
+        }
+      });
+
+      if (state.isOnline && state.messageQueue.length > 0) {
+        state.sentMessages.push(...state.messageQueue);
+        state.messageQueue = [];
+      }
+
+      saveState();
+      renderDashboard();
+    }
+
+    // Connection Toggle
+    document.getElementById("toggleConnBtn").addEventListener("click", () => {
+      state.isOnline = !state.isOnline;
+      if (state.isOnline && state.messageQueue.length > 0) {
+        state.sentMessages.push(...state.messageQueue);
+        state.messageQueue = [];
+      }
+      saveState();
+      renderConnection();
+      if (state.isLoggedIn) renderDashboard();
+    });
+
+    // Login
+    document.getElementById("loginForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const u = document.getElementById("loginUser").value.trim();
+      const p = document.getElementById("loginPass").value;
+      const msgEl = document.getElementById("authMsg");
+
+      if (u === state.admin.username && btoa(p) === state.admin.passwordHash) {
+        state.isLoggedIn = true;
+        msgEl.textContent = "";
+        saveState();
+        renderAuth();
+      } else {
+        msgEl.textContent = "Invalid username or password.";
+      }
+    });
+
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+      state.isLoggedIn = false;
+      saveState();
+      renderAuth();
+    });
+
+    // OTP Password Reset Flow
+    document.getElementById("openResetBtn").addEventListener("click", () => {
+      document.getElementById("loginBox").classList.add("hidden");
+      document.getElementById("resetBox").classList.remove("hidden");
+      document.getElementById("resetMsg").textContent = "";
+      document.getElementById("otpPreview").textContent = "";
+    });
+
+    document.getElementById("backToLoginBtn").addEventListener("click", () => {
+      document.getElementById("resetBox").classList.add("hidden");
+      document.getElementById("loginBox").classList.remove("hidden");
+    });
+
+    document.getElementById("sendOtpBtn").addEventListener("click", () => {
+      const resetMsg = document.getElementById("resetMsg");
+      const preview = document.getElementById("otpPreview");
+      if (!state.isOnline) {
+        resetMsg.style.color = "#f87171";
+        resetMsg.textContent = "No Wi-Fi/Internet! Switch to Online Mode to send SMS or WhatsApp OTP.";
+        return;
+      }
+      const channel = document.getElementById("otpChannel").value;
+      const phone = document.getElementById("registeredPhone").value.trim();
+      const code = String(Math.floor(100000 + Math.random() * 900000));
+      state.pendingOtp = { code, channel, phone };
+      saveState();
+      resetMsg.textContent = "";
+      preview.textContent = `[Simulated ${channel} OTP to ${phone}]: Your code is ${code}`;
+    });
+
+    document.getElementById("confirmPasswordBtn").addEventListener("click", () => {
+      const enteredOtp = document.getElementById("otpInput").value.trim();
+      const newPass = document.getElementById("newPasswordInput").value;
+      const resetMsg = document.getElementById("resetMsg");
+
+      if (!state.pendingOtp || enteredOtp !== state.pendingOtp.code) {
+        resetMsg.style.color = "#f87171";
+        resetMsg.textContent = "Invalid or expired OTP code.";
+        return;
+      }
+      if (newPass.length < 4) {
+        resetMsg.style.color = "#f87171";
+        resetMsg.textContent = "New password must be at least 4 characters.";
+        return;
+      }
+
+      state.admin.passwordHash = btoa(newPass);
+      state.pendingOtp = null;
+      saveState();
+      resetMsg.style.color = "#4ade80";
+      resetMsg.textContent = "Password updated! You can now go back and log in.";
+    });
+
+    // Add Student
+    document.getElementById("addStudentForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const name = document.getElementById("stuName").value.trim();
+      const className = document.getElementById("stuClass").value.trim();
+      const phone = document.getElementById("stuPhone").value.trim();
+      const monthlyFee = Number(document.getElementById("stuFee").value);
+      const channel = document.getElementById("stuChannel").value;
+
+      const newStudent = {
+        id: Date.now(),
+        name,
+        className,
+        phone,
+        monthlyFee,
+        channel,
+        months: { Jan: false, Feb: false, Mar: false, Apr: false, May: false, Jun: false }
+      };
+
+      state.students.push(newStudent);
+      saveState();
+      e.target.reset();
+      document.getElementById("stuFee").value = 4500;
+      renderDashboard();
+    });
+
+    document.getElementById("runOverdueCheckBtn").addEventListener("click", evaluateOverdueAndDispatch);
+
+    document.getElementById("flushQueueBtn").addEventListener("click", () => {
+      if (!state.isOnline) {
+        alert("Currently in Offline Mode. Switch to Wi-Fi / Online Mode first to send queued messages.");
+        return;
+      }
+      if (state.messageQueue.length > 0) {
+        state.sentMessages.push(...state.messageQueue);
+        state.messageQueue = [];
+        saveState();
+        renderDashboard();
+      }
+    });
+
+    document.getElementById("resetDemoBtn").addEventListener("click", () => {
+      state = structuredClone(defaultState);
+      state.isLoggedIn = true;
+      saveState();
+      renderConnection();
+      renderDashboard();
+    });
+
+    renderConnection();
+    renderAuth();
+  </script>
+</body>
+</html>
